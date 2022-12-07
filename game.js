@@ -31,9 +31,15 @@ class BlackJack {
 		}
 	}
 
+    addPlayers(num = 6) {
+        for (let i = 0; i < num; i++) {
+            console.log(`--- Adding Player ${i + 1}`);
+            this.players.push(new Player());
+        }
+    }
+
     playRound() {
         console.log('Starting a new round...');
-
         console.log('--- Dealer gets a new deck of cards...');
         this.deck = new Deck();
         console.log(`--- There are ${this.deck.cards.length} cards in the deck to start`);
@@ -44,9 +50,7 @@ class BlackJack {
         this.naturals(); // the first 2 cards
         this.thePlay();
         this.theDealersPlay();
-        /*this.evaluateDealerHand();
-        this.revealDealerHidden();
-        this.scorePlayerHands();
+        /*this.scorePlayerHands();
         this.calculateWinnings();*/
 	}
 
@@ -80,22 +84,20 @@ class BlackJack {
         this.evaluatePlayerHands();
     }
 
-    evaluateDealerHand() {
+    theDealersPlay() {
         let dealer = this.players[0];
-        let hand = dealer.hand();
-        let score = Face[hand[0].face].value + Face[hand[1].face].value;
-        console.log(`Dealer's hand is ${JSON.stringify(hand)}: ${score}`);
-        if (score == BLACK_JACK)
-            console.log(`Blackjack for the dealer!`);
-        else if (score < 17)
-            while(score < 17) {
-                let i = 2;
-                console.log(`Dealer is drawing another card`);
-                this.dealCard(dealer);
-                score += Face[hand[i].face].value
-            }
-        else
-            console.log(`The Dealer's hand stands`);
+        console.log(`The Dealer's Play...`);
+        this.revealDealerHidden(dealer);
+        while(dealer.score < 16) {
+            this.dealCard(dealer);
+        }
+        console.log('');
+        this.evaluateDealerHand();
+    }
+
+    revealDealerHidden(dealer) {
+        let cardDisplay = JSON.stringify(dealer.hand()[1]);
+        console.log(`--- Dealer reveals ${cardDisplay}`);
     }
 
     dealCards() {
@@ -115,18 +117,31 @@ class BlackJack {
             let player = this.players[i];
             let hand = player.hand();
             let receiver = i !== 0 ? `Player ${i}` : `Dealer`;
-            let scoreDisplay;
-            switch (true) {
-                case player.score === BLACK_JACK:
-                    scoreDisplay = 'Blackjack!'; break;
-                case player.score >= BLACK_JACK:
-                    scoreDisplay = 'BUST';
-                default:
-                    scoreDisplay = player.score;
-            }
+            let scoreDisplay = this.getDisplayScore(player);
             console.log(`--- ${receiver}'s hand ${JSON.stringify(hand)}: ${scoreDisplay}`);
         }
         console.log(``);
+    }
+
+    evaluateDealerHand() {
+        console.log('Evaluating dealer hand...')
+        let dealer = this.players[0];
+        let hand = dealer.hand();
+        let scoreDisplay = this.getDisplayScore(dealer);
+        console.log(`--- Dealer's hand is ${JSON.stringify(hand)}: ${scoreDisplay}`);
+    }
+
+    getDisplayScore(player) {
+        let scoreDisplay;
+        switch (true) {
+            case player.score === BLACK_JACK:
+                scoreDisplay = 'Blackjack!';
+                break;
+            case player.score >= BLACK_JACK:
+                return 'BUST';
+            default:
+                return player.score;
+        }
     }
 
     dealCard(player, playerNum= 0) {
@@ -143,20 +158,8 @@ class BlackJack {
         // console.log(`${handHolder} now has ${JSON.stringify(player.hand())} cards`);
     }
 
-
-    revealDealerHidden() {
-        console.log(`Revealing Dealer's hidden card`)
-    }
-
     calculateWinnings() {
         console.log(`Totaling players wins or losses`)
-    }
-
-    addPlayers(num = 6) {
-        for (let i = 0; i < num; i++) {
-            console.log(`--- Adding Player ${i + 1}`);
-            this.players.push(new Player());
-        }
     }
 
     getScore(hand) {
@@ -168,18 +171,6 @@ class BlackJack {
         return score;
     }
 
-
-    theDealersPlay() {
-        let dealer = this.players[0];
-        console.log(`The Dealer's Play...`);
-        let cardDisplay = JSON.stringify(dealer.hand()[1]);
-        console.log(`--- Dealer reveals ${cardDisplay}`);
-        console.log(`--- Dealer's hand ${JSON.stringify(dealer.hand())}`)
-        while(dealer.score < 17) {
-            this.dealCard(dealer);
-        }
-
-    }
 }
 
 function getRandomBet() {
