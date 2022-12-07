@@ -1,13 +1,15 @@
 class Player {
     cards = [];
     isBusted = false;
+    isWinner = false;
     score = 0;
     money;
-    currentBet;
+    currentBet = 0;
     isDealer;
 
-    constructor(isDealer = false) {
+    constructor(isDealer = false, money = 1000) {
         this.isDealer = isDealer;
+        this.money = money;
     }
 
     placeBet(bet) {
@@ -21,7 +23,7 @@ class Player {
             cardDisplay = JSON.stringify({suite: '---', face: '---'});
         else
             cardDisplay = JSON.stringify(card);
-        console.log(`--- ${receiver} is dealt ${cardDisplay}`)
+        console.log(`--- ${receiver} ${this.isDealer ? 'draws' : 'is dealt'} ${cardDisplay}`)
         this.cards.push(card);
     }
 
@@ -35,6 +37,10 @@ class Player {
 
     goesBust() {
         this.isBusted = true;
+    }
+
+    won() {
+        return this.won;
     }
 }
 

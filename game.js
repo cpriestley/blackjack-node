@@ -9,6 +9,7 @@ function main() {
     game.startGame();
 }
 
+const DEALER = 0;
 const BLACK_JACK = 21;
 
 class BlackJack {
@@ -50,8 +51,7 @@ class BlackJack {
         this.naturals(); // the first 2 cards
         this.thePlay();
         this.theDealersPlay();
-        /*this.scorePlayerHands();
-        this.calculateWinnings();*/
+        this.calculateWinnings();
 	}
 
     placeBets() {
@@ -68,6 +68,20 @@ class BlackJack {
         this.dealCards()
         this.dealCards();
         this.evaluatePlayerHands();
+        // Show Naturals
+        this.players
+            .filter(player => player.score === BLACK_JACK)
+            .map(player => {
+                return {Dealer: player.isDealer,
+                        Index: this.players.indexOf(player),
+                        Hand: player.hand()};
+            })
+            .forEach(natural => {
+                const {Dealer, Index, Hand} = natural;
+                console.log(`${Dealer ? 'Dealer': 'Player ' + Index} Natural: ${JSON.stringify(Hand)}`)
+            });
+            // If a player has a natural and the dealer does not
+            // then player wins 1.5x's their bet
     }
 
     thePlay() {
@@ -85,7 +99,7 @@ class BlackJack {
     }
 
     theDealersPlay() {
-        let dealer = this.players[0];
+        let dealer = this.players[DEALER];
         console.log(`The Dealer's Play...`);
         this.revealDealerHidden(dealer);
         while(dealer.score < 16) {
@@ -103,10 +117,7 @@ class BlackJack {
     dealCards() {
         console.log('Dealer is dealing cards...')
         for (let i = 0; i < this.players.length; i++) {
-            let player = this.players[i];
-            //TODO: Evaluate if this is redundant
-            // if (!player.isBusted)
-                this.dealCard(player, i);
+            this.dealCard(this.players[i], i);
         }
         console.log(`There are ${this.deck.cards.length} cards remaining in the deck\n`);
     }
@@ -116,7 +127,7 @@ class BlackJack {
         for (let i = 1; i < this.players.length; i++) {
             let player = this.players[i];
             let hand = player.hand();
-            let receiver = i !== 0 ? `Player ${i}` : `Dealer`;
+            let receiver = i !== DEALER ? `Player ${i}` : `Dealer`;
             let scoreDisplay = this.getDisplayScore(player);
             console.log(`--- ${receiver}'s hand ${JSON.stringify(hand)}: ${scoreDisplay}`);
         }
@@ -125,18 +136,16 @@ class BlackJack {
 
     evaluateDealerHand() {
         console.log('Evaluating dealer hand...')
-        let dealer = this.players[0];
+        let dealer = this.players[DEALER];
         let hand = dealer.hand();
         let scoreDisplay = this.getDisplayScore(dealer);
-        console.log(`--- Dealer's hand is ${JSON.stringify(hand)}: ${scoreDisplay}`);
+        console.log(`--- Dealer's hand is ${JSON.stringify(hand)}: ${scoreDisplay}\n`);
     }
 
     getDisplayScore(player) {
-        let scoreDisplay;
         switch (true) {
             case player.score === BLACK_JACK:
-                scoreDisplay = 'Blackjack!';
-                break;
+                return 'BLACKJACK!';
             case player.score >= BLACK_JACK:
                 return 'BUST';
             default:
@@ -144,10 +153,9 @@ class BlackJack {
         }
     }
 
-    dealCard(player, playerNum= 0) {
+    dealCard(player, playerNum= DEALER) {
         let dealtCard = this.deck.cards[0];
-        let receiver = playerNum !== 0 ? `Player ${playerNum}` : `himself`;
-        // let handHolder = playerNum !== 0 ? `${receiver}` : `Dealer`;
+        let receiver = playerNum !== DEALER ? `Player ${playerNum}` : `Dealer`;
         player.takeCard(dealtCard, playerNum);
         this.deck.cards.shift();
         player.updateScore(this.getScore(player.hand()));
@@ -155,11 +163,22 @@ class BlackJack {
             player.goesBust();
             console.log(`    ! ${receiver} goes BUST`);
         }
-        // console.log(`${handHolder} now has ${JSON.stringify(player.hand())} cards`);
     }
 
     calculateWinnings() {
-        console.log(`Totaling players wins or losses`)
+        console.log(`Totaling player winnings and losses`);
+        this.players
+            .filter(player => !player.isDealer)
+            .forEach((player, index) => {
+                switch (true) {
+                    case player.isWinner:
+                        console.log(`Player ${index + 1} wins $${player.currentBet.toFixed(2)}`);
+                        break;
+                    case player.isBusted:
+                    default:
+                        console.log(`Player ${index + 1} loses $${player.currentBet.toFixed(2)}`);
+                }
+        })
     }
 
     getScore(hand) {
@@ -173,6 +192,7 @@ class BlackJack {
 
 }
 
+//Helper Functions
 function getRandomBet() {
     const keys = Object.keys(Chips);
     let key = keys[Math.floor(Math.random() * keys.length)];

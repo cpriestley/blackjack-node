@@ -29,22 +29,6 @@ class Face {
     }
 }
 
-/*const Faces = Object.freeze({
-    '2': Symbol(2),
-    '3': Symbol(3),
-    '4': Symbol(4),
-    '5': Symbol(5),
-    '6': Symbol(6),
-    '7': Symbol(7),
-    '8': Symbol(8),
-    '9': Symbol( 9),
-    '10': Symbol(10),
-    'J': Symbol(10),
-    'K': Symbol(10),
-    'Q': Symbol(10),
-    'A': Symbol(11)
-});*/
-
 class Card {
     suite;
     face;
@@ -57,8 +41,8 @@ class Card {
 class Deck {
     cards = []
     constructor(){
-        for (const [suite, value] of Object.entries(Suites)) {
-            for (const [face, value] of Object.entries(Face)) {
+        for (const [suite] of Object.entries(Suites)) {
+            for (const [face] of Object.entries(Face)) {
                 // console.log(`${suite}: ${value}`);
                 // console.log(`${face}: ${value}`);
                 //console.log(card);
