@@ -1,6 +1,7 @@
 class Player {
     cards = [];
     isBusted = false;
+    hasBlackJack = false;
     isWinner = false;
     score = 0;
     money;
@@ -16,14 +17,7 @@ class Player {
         this.currentBet = bet;
     }
 
-    takeCard(card, playerNum = 0) {
-        const receiver = playerNum !== 0 ? `Player ${playerNum}` : `The dealer`;
-        let cardDisplay;
-        if (this.isDealer && this.cards.length === 1)
-            cardDisplay = JSON.stringify({suite: '---', face: '---'});
-        else
-            cardDisplay = JSON.stringify(card);
-        console.log(`--- ${receiver} ${this.isDealer ? 'draws' : 'is dealt'} ${cardDisplay}`)
+    takeCard(card) {
         this.cards.push(card);
     }
 
@@ -39,9 +33,28 @@ class Player {
         this.isBusted = true;
     }
 
-    won() {
-        return this.won;
+    updateBlackjack() {
+        this.hasBlackJack = true;
+    }
+
+    handHasBlackjack() {
+        return this.hasBlackJack;
+    }
+
+    hasHigh() {
+        this.isWinner = true;
     }
 }
 
-module.exports = {Player: Player}
+const Chips = Object.freeze({
+    White: 1,
+    Red: 5,
+    Orange: 10,
+    Yellow: 20,
+    Green: 25,
+    Black: 100,
+    Purple: 500,
+    Maroon: 1000
+});
+
+module.exports = {Player: Player, Chips: Chips}
