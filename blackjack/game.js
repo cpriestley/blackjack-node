@@ -1,36 +1,34 @@
 const {Deck} = require("./card");
 const {Player, Chips} = require("./player");
-const TIMEOUT = 1000;
 
-function main() {
+function game() {
     console.log('Running blackjack-node\n')
     let game = new BlackJack();
     game.initialize();
     game.startGame();
 }
 
-const DEALER = 0;
-const NUMBER_OF_DECKS = 2;
-const BLACK_JACK = 21;
-let isBlackjackOnTable = false;
-
 class BlackJack {
+    TIMEOUT = 600;
+    DEALER = 0;
+    NUMBER_OF_DECKS = 2;
+    BLACK_JACK = 21;
     gameOver = false;
     players = [];
     deck;
 
     initialize() {
         let title =
-            '==============================================\n' +
+            '==============================================\n\n' +
             '+-----+  +-----+              +-----+  +-----+\n' +
             '|A    |  |10   |              |10   |  |A    |\n' +
             '|  ♦  |  |  ♠  |  BLACK JACK  |  ♠  |  |  ♣  |\n' +
             '|    A|  |   10|              |   10|  |    A|\n' +
-            '+-----+  +-----+              +-----+  +-----+\n' +
+            '+-----+  +-----+              +-----+  +-----+\n\n' +
             '==============================================';
-        console.log(`${title}\n`); sleep(TIMEOUT)
-        console.log('Initializing...'); sleep(TIMEOUT)
-        console.log('--- Adding the Dealer...'); sleep(TIMEOUT)
+        console.log(`${title}\n`); sleep(this.TIMEOUT)
+        console.log('Initializing...'); sleep(this.TIMEOUT)
+        console.log('--- Adding the Dealer...'); sleep(this.TIMEOUT)
         this.players.push(new Player(true));
         this.addPlayers();
         console.log('');
@@ -39,38 +37,38 @@ class BlackJack {
 	startGame() {
         while(!this.gameOver) {
 			this.playRound();
-            this.gameOver = false;
+            this.gameOver = true;
 		}
 	}
 
-    addPlayers(num = 6) {
+    addPlayers(num = 5) {
         for (let i = 0; i < num; i++) {
-            console.log(`--- Adding Player ${i + 1}`); sleep(TIMEOUT);
+            console.log(`--- Adding Player ${i + 1}`); sleep(this.TIMEOUT);
             this.players.push(new Player());
         }
     }
 
     playRound() {
-        console.log('Starting a new round...'); sleep(TIMEOUT);
-        console.log('--- Dealer gets a new deck of cards...'); sleep(TIMEOUT);
-        this.deck = new Deck(NUMBER_OF_DECKS);
-        console.log(`--- There are ${this.deck.cards.length} cards in the deck to start`); sleep(TIMEOUT);
-        console.log('--- Dealer shuffles the deck...\n');sleep(TIMEOUT);
+        console.log('Starting a new round...'); sleep(this.TIMEOUT);
+        console.log('--- Dealer gets a new deck of cards...'); sleep(this.TIMEOUT);
+        this.deck = new Deck(this.NUMBER_OF_DECKS);
+        console.log(`--- There are ${this.deck.cards.length} cards in the deck to start`); sleep(this.TIMEOUT);
+        console.log('--- Dealer shuffles the deck...\n');sleep(this.TIMEOUT);
         this.deck.shuffle();
 
-        this.placeBets(); sleep(TIMEOUT);
-        this.naturals(); sleep(TIMEOUT);// the first 2 cards
-        this.thePlay();sleep(TIMEOUT);// the first 2 cards
-        this.theDealersPlay(); sleep(TIMEOUT);// the first 2 cards
-        this.checkForWinner(); sleep(TIMEOUT);// the first 2 cards
-        this.calculateWinnings(); sleep(TIMEOUT);// the first 2 cards
+        this.placeBets(); sleep(this.TIMEOUT);
+        this.naturals(); sleep(this.TIMEOUT);// the first 2 cards
+        this.thePlay();sleep(this.TIMEOUT);// the first 2 cards
+        this.theDealersPlay(); sleep(this.TIMEOUT);// the first 2 cards
+        this.checkForWinner(); sleep(this.TIMEOUT);// the first 2 cards
+        this.calculateWinnings(); sleep(this.TIMEOUT);// the first 2 cards
         console.log('\n--------------------------------------------------------------\n');
     }
 
     placeBets() {
         console.log('Players are placing bets...')
         for (let i = 1; i < this.players.length; i++) {
-            let bet = getRandomBet(); sleep(TIMEOUT);
+            let bet = getRandomBet(); sleep(this.TIMEOUT);
             console.log(`--- Player ${i} wagers $${bet}`)
             this.players[i].placeBet(bet)
         }
@@ -80,6 +78,7 @@ class BlackJack {
     naturals() {
         this.dealCards()
         this.dealCards();
+        this.evaluateDealerHand();
         this.evaluatePlayerHands();
         console.log('Checking player hands for naturals...');
         // Show Naturals
@@ -92,18 +91,11 @@ class BlackJack {
                 console.log(`--- ${player.isDealer ? 'Dealer': 'Player ' + i}:`);
                 this.drawCard(player.hand());
             });
-
-        playersWith21.forEach(player => player.hasHigh());
-
-        isBlackjackOnTable =  playersWith21.length > 0;
-
-        // If a player has a natural and the dealer does not
-        // then player wins 1.5x's their bet
         console.log('');
     }
 
     checkForWinner() {
-        let dealer = this.players[DEALER];
+        let dealer = this.players[this.DEALER];
         let dealerScoreDisplay;
         console.log(`Checking for winners...`);
         if (dealer.hasBlackJack)
@@ -113,25 +105,12 @@ class BlackJack {
         else
             dealerScoreDisplay = dealer.score
         console.log(`--- Dealer's hand is ${dealerScoreDisplay}`);
-        let highestHand;
-        if (isBlackjackOnTable) {
-            highestHand = BLACK_JACK;
-        } else {
-         highestHand = this.players
-            .filter(player => !player.isBusted && !player.isDealer)
-            .reduce((accumulator, player) => {
-                return accumulator > player.score ? accumulator : player.score
-            });
-        }
-        console.log(`--- Highest valid hand is ${highestHand === BLACK_JACK ? 'BLACKJACK' : highestHand}`);
 
         this.players
-            .filter(player => !player.isDealer && player.score === highestHand)
-            .forEach(player => {
-                if ((player.score > dealer.score && !dealer.isBusted) || (dealer.isBusted))
-                    player.hasHigh()
-            })
+            .filter(player => !player.isBusted && player.score > dealer.score)
+            .forEach((player) => { player.hasHigh(); });
 
+        //console.log(`--- Highest valid hand is ${highestHand === BLACK_JACK ? 'BLACKJACK' : highestHand}`);
         console.log('');
     }
 
@@ -146,7 +125,7 @@ class BlackJack {
     }
 
     theDealersPlay() {
-        let dealer = this.players[DEALER];
+        let dealer = this.players[this.DEALER];
         console.log(`The Dealer's Play...`);
         this.revealDealerHidden(dealer);
         while(dealer.score < 16) {
@@ -163,11 +142,11 @@ class BlackJack {
     }
 
     dealCards() {
-        console.log('Dealer is dealing cards...'); sleep(TIMEOUT);
+        console.log('Dealer is dealing cards...'); sleep(this.TIMEOUT);
         for (let i = 1; i < this.players.length; i++) {
             this.dealCard(this.players[i], i);
         }
-        this.dealCard(this.players[DEALER]);
+        this.dealCard(this.players[this.DEALER]);
     }
 
     evaluatePlayerHands() {
@@ -175,60 +154,60 @@ class BlackJack {
         for (let i = 1; i < this.players.length; i++) {
             let player = this.players[i];
             let hand = player.hand();
-            let receiver = i !== DEALER ? `Player ${i}` : `Dealer`;
-            if (player.score === BLACK_JACK)
+            let receiver = i !== this.DEALER ? `Player ${i}` : `Dealer`;
+            if (player.score === this.BLACK_JACK)
                 player.updateBlackjack()
             console.log(`--- ${receiver}'s hand...`);
-            this.drawCard(hand); sleep(TIMEOUT);
+            this.drawCard(hand); sleep(this.TIMEOUT);
             console.log('');
         }
     }
 
     evaluateDealerHand() {
         console.log('Evaluating dealer hand...')
-        let dealer = this.players[DEALER];
+        let dealer = this.players[this.DEALER];
         let scoreDisplay = this.getDisplayScore(dealer);
-        if (dealer.score === BLACK_JACK)
+        if (dealer.score === this.BLACK_JACK)
             dealer.updateBlackjack();
         console.log(`--- Dealer's hand: ${scoreDisplay}`);
-        this.drawCard(dealer.hand()); sleep(TIMEOUT);
+        this.drawCard(dealer.hand()); sleep(this.TIMEOUT);
         console.log('');
     }
 
     getDisplayScore(player) {
         switch (true) {
-            case player.score === BLACK_JACK:
+            case player.score === this.BLACK_JACK:
                 return 'BLACKJACK!';
-            case player.score >= BLACK_JACK:
+            case player.score >= this.BLACK_JACK:
                 return 'BUST';
             default:
                 return player.score;
         }
     }
 
-    dealCard(player, playerNum= DEALER) {
+    dealCard(player, playerNum= this.DEALER) {
         let dealtCard = this.deck.cards[0];
-        let receiver = playerNum !== DEALER ? `Player ${playerNum}` : `Dealer`;
+        let receiver = playerNum !== this.DEALER ? `Player ${playerNum}` : `Dealer`;
         player.takeCard(dealtCard);
         process.stdout.write(`--- ${receiver} ${player.isDealer ? 'draws' : 'is dealt'}...\n`);
         this.drawCard(
             [player.hand()[player.hand().length - 1]],
-            playerNum === DEALER && player.hand().length === 2
+            playerNum === this.DEALER && player.hand().length === 2
         );
-        sleep(TIMEOUT);
+        sleep(this.TIMEOUT);
         this.deck.cards.shift();
         player.updateScore(this.getScore(player.hand()));
-        if (player.score > BLACK_JACK) {
+        if (player.score > this.BLACK_JACK) {
             player.goesBust();
             console.log(`--- ${receiver} goes BUST`);
             console.log('');
-            sleep(TIMEOUT);
-        } else if (player.score === BLACK_JACK) {
+            sleep(this.TIMEOUT);
+        } else if (player.score === this.BLACK_JACK) {
             player.handHasBlackjack();
-            isBlackjackOnTable = true;
+            //isBlackjackOnTable = true;
             console.log(`--- ${receiver} has BLACKJACK`);
             console.log('');
-            sleep(TIMEOUT);
+            sleep(this.TIMEOUT);
         }
     }
 
@@ -284,12 +263,12 @@ function getRandomBet() {
 }
 
 function simulateHits(player, i, game) {
-    while((player.score < 16 && !player.handHasBlackjack() || isBlackjackOnTable) && !player.isBusted) {
-        process.stdout.write(`--- Player ${i} says 'Hit':  `); sleep(TIMEOUT)
+    while((player.score < 16 && !player.handHasBlackjack()) && !player.isBusted) {
+        process.stdout.write(`--- Player ${i} says 'Hit':  `); sleep(this.TIMEOUT)
         game.dealCard(player, i);
     }
     if (!player.isBusted) {
-        console.log(`--- Player ${i} says 'Hold'`); sleep(TIMEOUT);
+        console.log(`--- Player ${i} says 'Hold'`); sleep(this.TIMEOUT);
         console.log('');
     }
 }
@@ -302,8 +281,6 @@ function sleep(milliseconds) {
     } while (currentDate - date < milliseconds);
 }
 
-main();
+game();
 
-
-
-
+module.exports = game;
