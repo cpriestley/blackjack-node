@@ -2,9 +2,9 @@
   "name": "blackjack-node",
   "version": "1.0.0",
   "description": "simulates a casino banking game of Blackjack where each player competes against the dealer to reach 21 points",
-  "main": "index.js",
+  "main": "game.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node game.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,11 +18,11 @@
   },
   "homepage": "https://github.com/cpriestley/blackjack-node#readme",
   "dependencies": {
-    "chalk": "^5.2.0",
     "commander": "^9.4.1",
-    "conf": "^10.2.0"
+    "conf": "^10.2.0",
+    "readline": "^1.3.0"
   },
   "bin": {
-    "blackjack": "index.js"
+    "blackjack": "./game.js"
   }
 }
